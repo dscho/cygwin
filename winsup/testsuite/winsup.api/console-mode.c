@@ -13,6 +13,30 @@
 #include <string.h>
 #include <unistd.h>
 #include <windows.h>
+#include <errno.h>
+
+static void
+check (int ok, const char *expression, int line)
+{
+  DWORD error = GetLastError ();
+  int saved_errno = errno;
+  FILE *log = fopen ("console-mode-diagnostics.log", "a");
+  if (log)
+    {
+      fprintf (log, "pid %u, line %d: %s: %s (Win32=%u, errno=%d)\n",
+	       GetCurrentProcessId (), line, expression,
+	       ok ? "OK" : "FAILED", error, saved_errno);
+      fclose (log);
+    }
+  else
+    fprintf (stderr, "Cannot open console-mode-diagnostics.log: %s\n",
+	     strerror (errno));
+  if (!ok)
+    abort ();
+}
+
+#undef assert
+#define assert(expression) check (!!(expression), #expression, __LINE__)
 
 int
 main (int argc, char **argv)
@@ -43,7 +67,7 @@ main (int argc, char **argv)
       assert (CloseHandle (process.hThread));
       assert (CloseHandle (process.hProcess));
       if (result)
-	fprintf (stderr, "Console-mode worker failed: %lu\n", result);
+	fprintf (stderr, "Console-mode worker failed: %u\n", result);
       return result != 0;
     }
 
