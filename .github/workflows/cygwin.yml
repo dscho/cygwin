@@ -141,11 +141,27 @@ jobs:
           perl,
           python3-lxml,
           python3-ply,
+          python312-lxml=6.1.3-1,
           texlive-collection-fontsrecommended,
           texlive-collection-latexrecommended,
           texlive-collection-pictures,
           xmlto,
           zlib-devel
+
+    - name: Verify pinned lxml
+      run: |
+        export PATH=/usr/bin:$(cygpath ${SYSTEMROOT})/system32
+        cygcheck -c python312-lxml | awk '
+          { print }
+          $1 == "python312-lxml" { ok = ($2 == "6.1.3-1" && $3 == "OK") }
+          END {
+            if (!ok) {
+              print "Expected python312-lxml 6.1.3-1 (OK)" > "/dev/stderr"
+              exit 1
+            }
+          }'
+        python3 -c "import lxml.etree"
+      shell: C:\cygwin\bin\bash.exe --noprofile --norc -eo pipefail '{0}'
 
     # build
     - name: Build Cygwin
