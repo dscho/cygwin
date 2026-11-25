@@ -131,6 +131,7 @@ jobs:
           docbook2X,
           gcc-g++,
           gettext-devel,
+          libintl-devel=0.26-2,
           libiconv,
           libiconv-devel,
           libzstd-devel,
@@ -146,6 +147,13 @@ jobs:
           texlive-collection-pictures,
           xmlto,
           zlib-devel
+
+    - name: Verify static libintl
+      run: >-
+        cygcheck -c libintl-devel &&
+        (test -f /usr/lib/libintl.a ||
+        { echo "Missing static libintl.a required by cygserver" >&2; exit 1; })
+      shell: C:\cygwin\bin\bash.exe --noprofile --norc -eo pipefail '{0}'
 
     # build
     - name: Build Cygwin
